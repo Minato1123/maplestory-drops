@@ -26,7 +26,7 @@
           Details
         </UButton>
         <template #content>
-          <div class="p-4 w-xs flex flex-col gap-1.5 max-h-96 overflow-y-auto">
+          <div class="p-4 w-48 flex flex-col gap-1.5 max-h-96 overflow-y-auto">
             <div class="bg-red-600 rounded text-white px-2 py-0.5 flex justify-between items-center text-sm">
               <div>
                 HP
@@ -61,7 +61,7 @@
             </div>
             <div class="border border-accented! rounded px-2 py-0.5 flex justify-between items-center text-sm">
               <div>
-                DEF
+                MDEF
               </div>
               <div class="font-semibold">
                 1150
@@ -69,7 +69,7 @@
             </div>
             <div class="border border-accented! rounded px-2 py-0.5 flex justify-between items-center text-sm">
               <div>
-                MDEF
+                WDEF
               </div>
               <div class="font-semibold">
                 1270
@@ -81,16 +81,6 @@
               </div>
               <div class="font-semibold">
                 52
-              </div>
-            </div>
-            <div class="border border-accented! rounded px-2 pt-0.5 pb-1 text-sm">
-              <div>
-                Maps
-              </div>
-              <div class="font-semibold flex flex-col gap-1 mt-1">
-                <div v-for="i in 6" :key="i" class="bg-elevated px-2 py-0.5 rounded">
-                  Ludibrium : Toy Factory &lt;Main Process 1&gt;
-                </div>
               </div>
             </div>
           </div>

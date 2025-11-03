@@ -1,21 +1,38 @@
 <script setup lang="ts">
 import MonsterCard from './components/MonsterCard.vue'
+import items from './json/items.json'
+import mobs from './json/mobs.json'
+
+const filterItems = ref(['Mobs', 'Equip', 'Scroll', 'Use', 'Etc', 'Setup'])
+const filterValue = ref(['Mobs', 'Equip', 'Scroll', 'Use', 'Etc', 'Setup'])
 
 const input = ref('')
-const maps = ref([])
 
-const items = [
-  { label: 'Sleepywood', value: 'sleepywood' },
-  { label: 'El Nath', value: 'elnath' },
-  { label: 'Orbis', value: 'orbis' },
-  { label: 'Ludibrium', value: 'ludibrium' },
-  { label: 'Ariant', value: 'ariant' },
-  { label: 'Leafre', value: 'leafre' },
-  { label: 'Temple of Time', value: 'templeoftime' },
-  { label: 'Magatia', value: 'magatia' },
-  { label: 'Nautilus', value: 'nautilus' },
-  { label: 'Singapore', value: 'singapore' },
-]
+const filteredMobs = computed(() => {
+  return mobs.filter((mob) => {
+    const itemIds: number[] = []
+    if (filterValue.value.includes('Equip') || filterValue.value.includes('Scroll') || filterValue.value.includes('Use') || filterValue.value.includes('Etc') || filterValue.value.includes('Setup')) {
+      for (const [key, value] of Object.entries(items)) {
+        if (value.name.toLowerCase().includes(input.value.toLowerCase())) {
+          itemIds.push(+key)
+        }
+      }
+    }
+
+    const mobFilter: boolean = filterValue.value.includes('Mobs') ? mob.name.toLowerCase().includes(input.value.toLowerCase()) : false
+    const equipFilter: boolean = filterValue.value.includes('Equip') ? mob.dropData.equip.some(e => itemIds.includes(e)) : false
+    const scrollFilter: boolean = filterValue.value.includes('Scroll') ? mob.dropData.scroll.some(e => itemIds.includes(e)) : false
+    const useFilter: boolean = filterValue.value.includes('Use') ? mob.dropData.use.some(e => itemIds.includes(e)) : false
+    const etcFilter: boolean = filterValue.value.includes('Etc') ? mob.dropData.etc.some(e => itemIds.includes(e)) : false
+    const setupFilter: boolean = filterValue.value.includes('Setup') ? mob.dropData.setup.some(e => itemIds.includes(e)) : false
+    return mobFilter || equipFilter || scrollFilter || useFilter || etcFilter || setupFilter
+  })
+})
+
+function resetFilter() {
+  filterValue.value = ['Mobs', 'Equip', 'Scroll', 'Use', 'Etc', 'Setup']
+  input.value = ''
+}
 </script>
 
 <template>
@@ -52,15 +69,14 @@ const items = [
                     </div>
                     <UInputNumber color="neutral" :default-value="200" />
                   </div>
-                  <div>
-                    Map
-                  </div>
-                  <UCheckboxGroup
-                    v-model="maps"
-                    color="neutral"
-                    variant="list"
-                    :items="items"
-                  />
+                </div>
+              </div>
+              <div class="p-4 max-w-sm">
+                <div>
+                  Keyword Search
+                </div>
+                <div>
+                  <UCheckboxGroup v-model="filterValue" color="neutral" :items="filterItems" />
                 </div>
               </div>
             </template>
@@ -78,11 +94,12 @@ const items = [
             color="neutral"
             variant="ghost"
             aria-label="Clear"
+            @click="resetFilter"
           />
         </div>
       </div>
       <div class="p-4 mt-18 sm:mt-10">
-        <MonsterCard v-for="i in 5" :key="i" />
+        <MonsterCard v-for="mob in filteredMobs" :key="mob.id" :mob="mob" />
       </div>
     </UApp>
   </div>

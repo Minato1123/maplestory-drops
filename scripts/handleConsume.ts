@@ -10,6 +10,8 @@ const __dirname = path.dirname(__filename)
 const consumeInputDir = path.join(__dirname, 'rawData/Item.wz/Consume')
 const consumeOutputFile = path.join(__dirname, 'handlingData/consumeItems.json')
 
+const regexPattern = /\.\.\/\.\.\/(\d+)\/info\/icon/
+
 export async function handleConsumeData() {
   try {
     const organizedData: Record<number, {
@@ -40,7 +42,27 @@ export async function handleConsumeData() {
           const jsonData = JSON.parse(fileContent)
           for (const [key, item] of Object.entries(jsonData)) {
             const id = Number(key)
-            const base64Img = item.info.icon._image
+
+            // const table = {
+            //   '../../02040000/info/icon': jsonData['02040000'].info.icon._image,
+            //   '../../02040001/info/icon': '',
+            //   '../../02040002/info/icon': '',
+            //   '../../02040008/info/icon': '',
+            //   '../../02040009/info/icon': '',
+            //   '../../02040019/info/icon': '',
+            //   '../../02040020/info/icon': '',
+            //   '../../02040110/info/icon': '',
+            //   '../../02040315/info/icon': '',
+            //   '../../02044713/info/icon': '',
+            //   '../../02049200/info/icon': '',
+            //   '../../02049201/info/icon': '',
+            // }
+            function getElseImage(iconPath: string) {
+              const match = iconPath.match(regexPattern)
+              return jsonData[match[1]].info.icon._image
+            }
+
+            const base64Img = item.info.icon._image == null ? getElseImage(item.info.icon._value) : item.info.icon._image
             if (base64Img == null)
               continue
 

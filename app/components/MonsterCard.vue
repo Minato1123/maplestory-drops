@@ -1,27 +1,8 @@
 <script setup lang="ts">
+import type { MobType } from '~/types'
+
 defineProps<{
-  mob: {
-    id: string
-    name: string
-    img: string
-    info: {
-      level: number
-      hp: number
-      mp: number
-      exp: number
-      wdef: number
-      mdef: number
-      acc: number
-      eva: number
-    }
-    dropData: {
-      equip: number[]
-      use: number[]
-      scroll: number[]
-      etc: number[]
-      setup: number
-    }
-  }
+  mob: MobType
 }>()
 </script>
 
@@ -148,6 +129,14 @@ defineProps<{
         </div>
         <div class="flex flex-wrap gap-2">
           <DropsTag v-for="etc in mob.dropData.etc" :key="etc" :item-id="etc" />
+        </div>
+      </div>
+      <div v-if="mob.dropData.setup.length > 0" class="flex sm:flex-row flex-col gap-2">
+        <div class="w-14 text-sm font-semibold shrink-0 mt-3">
+          Set-up
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <DropsTag v-for="s in mob.dropData.setup" :key="s" :item-id="s" />
         </div>
       </div>
     </div>

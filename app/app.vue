@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MobType } from './types'
 import MonsterCard from './components/MonsterCard.vue'
 import items from './json/items.json'
 import mobs from './json/mobs.json'
@@ -7,9 +8,50 @@ const filterItems = ref(['Mobs', 'Equip', 'Scroll', 'Use', 'Etc', 'Setup'])
 const filterValue = ref(['Mobs', 'Equip', 'Scroll', 'Use', 'Etc', 'Setup'])
 
 const input = ref('')
+const allMobs = mobs as MobType[]
+const filteredMobs = ref<MobType[]>(allMobs)
 
-const filteredMobs = computed(() => {
-  return mobs.filter((mob) => {
+function resetFilter() {
+  filterValue.value = ['Mobs', 'Equip', 'Scroll', 'Use', 'Etc', 'Setup']
+  input.value = ''
+}
+
+const PAGE_SIZE = 10
+const displayMobs = ref<MobType[]>([])
+const currentPage = ref(1)
+
+const shownText = ref('Loading...')
+function loadMore() {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  const end = currentPage.value * PAGE_SIZE
+
+  // 從「已過濾」的列表中取出下一批
+  const newMobs = filteredMobs.value.slice(start, end)
+
+  if (newMobs.length > 0) {
+    displayMobs.value.push(...newMobs)
+    currentPage.value++
+  }
+  else {
+    shownText.value = 'It\'s the end.'
+  }
+}
+
+const loadMoreTrigger = ref(null)
+useIntersectionObserver(
+  loadMoreTrigger,
+  ([{ isIntersecting }]) => {
+    if (isIntersecting) {
+      loadMore()
+    }
+  },
+)
+
+watchDebounced([filterValue, input], () => {
+  displayMobs.value = []
+  currentPage.value = 1
+
+  setTimeout(() => {
     const itemIds: number[] = []
     if (filterValue.value.includes('Equip') || filterValue.value.includes('Scroll') || filterValue.value.includes('Use') || filterValue.value.includes('Etc') || filterValue.value.includes('Setup')) {
       for (const [key, value] of Object.entries(items)) {
@@ -19,20 +61,24 @@ const filteredMobs = computed(() => {
       }
     }
 
-    const mobFilter: boolean = filterValue.value.includes('Mobs') ? mob.name.toLowerCase().includes(input.value.toLowerCase()) : false
-    const equipFilter: boolean = filterValue.value.includes('Equip') ? mob.dropData.equip.some(e => itemIds.includes(e)) : false
-    const scrollFilter: boolean = filterValue.value.includes('Scroll') ? mob.dropData.scroll.some(e => itemIds.includes(e)) : false
-    const useFilter: boolean = filterValue.value.includes('Use') ? mob.dropData.use.some(e => itemIds.includes(e)) : false
-    const etcFilter: boolean = filterValue.value.includes('Etc') ? mob.dropData.etc.some(e => itemIds.includes(e)) : false
-    const setupFilter: boolean = filterValue.value.includes('Setup') ? mob.dropData.setup.some(e => itemIds.includes(e)) : false
-    return mobFilter || equipFilter || scrollFilter || useFilter || etcFilter || setupFilter
-  })
-})
+    filteredMobs.value = allMobs.filter((mob) => {
+      const mobFilter: boolean = filterValue.value.includes('Mobs') ? mob.name.toLowerCase().includes(input.value.toLowerCase()) : false
+      const equipFilter: boolean = filterValue.value.includes('Equip') ? mob.dropData.equip.some(e => itemIds.includes(e)) : false
+      const scrollFilter: boolean = filterValue.value.includes('Scroll') ? mob.dropData.scroll.some(e => itemIds.includes(e)) : false
+      const useFilter: boolean = filterValue.value.includes('Use') ? mob.dropData.use.some(e => itemIds.includes(e)) : false
+      const etcFilter: boolean = filterValue.value.includes('Etc') ? mob.dropData.etc.some(e => itemIds.includes(e)) : false
+      const setupFilter: boolean = filterValue.value.includes('Setup') ? mob.dropData.setup.some(e => itemIds.includes(e)) : false
 
-function resetFilter() {
-  filterValue.value = ['Mobs', 'Equip', 'Scroll', 'Use', 'Etc', 'Setup']
-  input.value = ''
-}
+      return mobFilter || equipFilter || scrollFilter || useFilter || etcFilter || setupFilter
+    },
+    )
+    loadMore()
+  }, 0)
+}, { debounce: 1000, maxWait: 5000 })
+
+onMounted(() => {
+  loadMore()
+})
 </script>
 
 <template>
@@ -99,7 +145,10 @@ function resetFilter() {
         </div>
       </div>
       <div class="p-4 mt-18 sm:mt-10">
-        <MonsterCard v-for="mob in filteredMobs" :key="mob.id" :mob="mob" />
+        <MonsterCard v-for="mob in displayMobs" :key="mob.id" :mob="mob" />
+      </div>
+      <div ref="loadMoreTrigger" class="h-20 w-full flex justify-center items-center">
+        {{ shownText }}
       </div>
     </UApp>
   </div>
